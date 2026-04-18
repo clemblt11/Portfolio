@@ -1,0 +1,2001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clémence Boulet — VFX & 3D Artist</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Syne:wght@400;700;800&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <style>
+    /* ===================== RESET & BASE ===================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #060608;
+      --surface:   #0d0d12;
+      --card-bg:   #111118;
+      --border:    rgba(255,255,255,0.06);
+      --text:      #e8e4dc;
+      --muted:     rgba(232,228,220,0.45);
+      --accent:    #c8a97e;
+      --accent2:   #6b8fa3;
+      --glow:      rgba(200,169,126,0.25);
+      --font-display: 'Cormorant Garamond', serif;
+      --font-ui:      'Syne', sans-serif;
+      --font-mono:    'DM Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-ui);
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ===================== MOUSE GLOW ===================== */
+    #mouse-glow {
+      position: fixed;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(200,169,126,0.18) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 9990;
+      transform: translate(-50%, -50%);
+      transition: left 0.08s ease, top 0.08s ease;
+      mix-blend-mode: screen;
+    }
+
+    /* ===================== PARTICLES CANVAS ===================== */
+    #particles-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.5;
+    }
+
+    /* ===================== CUSTOM CURSOR ===================== */
+    .cursor-dot {
+      position: fixed;
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.05s;
+    }
+    .cursor-ring {
+      position: fixed;
+      width: 36px; height: 36px;
+      border: 1px solid rgba(200,169,126,0.6);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: all 0.12s ease;
+    }
+
+    /* ===================== GRAIN OVERLAY ===================== */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: -200%;
+      width: 400%; height: 400%;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      opacity: 0.25;
+      pointer-events: none;
+      z-index: 1000;
+      animation: grain 0.5s steps(1) infinite;
+    }
+    @keyframes grain {
+      0%  { transform: translate(0, 0); }
+      10% { transform: translate(-2%, -3%); }
+      20% { transform: translate(3%, 1%); }
+      30% { transform: translate(-1%, 4%); }
+      40% { transform: translate(2%, -2%); }
+      50% { transform: translate(-3%, 2%); }
+      60% { transform: translate(1%, -4%); }
+      70% { transform: translate(-2%, 3%); }
+      80% { transform: translate(4%, 0%); }
+      90% { transform: translate(-1%, -1%); }
+      100%{ transform: translate(0, 0); }
+    }
+
+    /* ===================== NAV ===================== */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 500;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 28px 52px;
+    }
+    nav::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.95), transparent);
+      pointer-events: none;
+    }
+    .nav-logo {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      color: var(--text);
+      text-decoration: none;
+      position: relative;
+    }
+    .nav-links {
+      display: flex;
+      gap: 40px;
+      list-style: none;
+      position: relative;
+    }
+    .nav-links a {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    .nav-links a:hover { color: var(--accent); }
+
+    /* ===================== NAV DROPDOWN ===================== */
+    .nav-item { position: relative; }
+    /* Invisible bridge fills the gap so hover never breaks */
+    .nav-item::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: -20px;
+      right: -20px;
+      height: 20px;
+    }
+    .nav-dropdown {
+      position: absolute;
+      top: calc(100% + 20px);
+      left: 50%;
+      background: rgba(10,10,14,0.97);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(16px);
+      min-width: 160px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      transform: translateX(-50%) translateY(-4px);
+      z-index: 600;
+    }
+    .nav-dropdown::before {
+      content: '';
+      position: absolute;
+      top: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0; height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-bottom: 6px solid var(--border);
+    }
+    .nav-item:hover .nav-dropdown,
+    .nav-item:focus-within .nav-dropdown {
+      opacity: 1;
+      pointer-events: all;
+      transform: translateX(-50%) translateY(0);
+    }
+    .nav-dropdown a {
+      display: block;
+      padding: 12px 20px;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s, background 0.2s;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .nav-dropdown a:last-child { border-bottom: none; }
+    .nav-dropdown a:hover {
+      color: var(--accent);
+      background: rgba(200,169,126,0.05);
+    }
+    .nav-arrow {
+      display: inline-block;
+      margin-left: 4px;
+      font-size: 0.55rem;
+      opacity: 0.5;
+      transition: transform 0.25s;
+    }
+    .nav-item:hover .nav-arrow { transform: rotate(180deg); }
+
+    /* ===================== HERO ===================== */
+    .hero {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0 52px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 60% at 70% 40%, rgba(107,143,163,0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 50% at 20% 80%, rgba(200,169,126,0.09) 0%, transparent 60%),
+        var(--bg);
+    }
+
+    .hero-lines {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      opacity: 0.15;
+    }
+    .hero-lines svg { width: 100%; height: 100%; }
+
+    .hero-tag {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 24px;
+      position: relative;
+      opacity: 0;
+      animation: fadeUp 1s ease 0.3s forwards;
+    }
+    .hero-tag::before {
+      content: '';
+      display: inline-block;
+      width: 32px; height: 1px;
+      background: var(--accent);
+      margin-right: 14px;
+      vertical-align: middle;
+    }
+
+    .hero-name-row {
+      display: flex;
+      align-items: center;
+      gap: 48px;
+      position: relative;
+      opacity: 0;
+      animation: fadeUp 1.2s ease 0.5s forwards;
+    }
+
+    .hero-portrait {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      border: 1px solid rgba(200,169,126,0.35);
+      overflow: hidden;
+      flex-shrink: 0;
+      box-shadow: 0 0 60px rgba(200,169,126,0.18);
+    }
+    .hero-portrait img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: grayscale(15%);
+    }
+    .hero-portrait-placeholder {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(145deg, #181410, #221e18);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .hero-portrait-placeholder span {
+      font-family: var(--font-mono);
+      font-size: 0.45rem;
+      letter-spacing: 0.2em;
+      color: rgba(200,169,126,0.45);
+      text-transform: uppercase;
+    }
+
+    .hero-name {
+      font-family: var(--font-display);
+      font-size: clamp(5rem, 12vw, 11rem);
+      font-weight: 300;
+      line-height: 0.9;
+      letter-spacing: -0.01em;
+      position: relative;
+    }
+    .hero-name em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .hero-sub {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: 48px;
+      position: relative;
+      opacity: 0;
+      animation: fadeUp 1s ease 0.9s forwards;
+    }
+    .hero-desc {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      max-width: 300px;
+      line-height: 1.8;
+    }
+    .hero-scroll {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .scroll-line {
+      width: 1px;
+      height: 60px;
+      background: linear-gradient(to bottom, var(--accent), transparent);
+      animation: scrollPulse 2s ease infinite;
+    }
+    @keyframes scrollPulse {
+      0%, 100% { opacity: 0.4; transform: scaleY(1); }
+      50% { opacity: 1; transform: scaleY(1.1); }
+    }
+
+    /* ===================== SHOWREEL ===================== */
+    .showreel {
+      position: relative;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .showreel video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.75;
+    }
+    .showreel iframe {
+      border: 0;
+      pointer-events: none;
+    }
+    .showreel-iframe-wrap {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 177.78vh;
+      height: 100vh;
+      min-width: 100vw;
+      min-height: 56.25vw;
+    }
+    .showreel-iframe-wrap iframe {
+      width: 100%;
+      height: 100%;
+    }
+    .showreel-label {
+      position: absolute;
+      bottom: 48px;
+      left: 52px;
+      font-family: var(--font-display);
+      font-size: 0.9rem;
+      font-style: italic;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 0.1em;
+    }
+    .showreel-frame {
+      position: absolute;
+      inset: 24px;
+      border: 1px solid rgba(200,169,126,0.2);
+      pointer-events: none;
+    }
+    .showreel-frame::before,
+    .showreel-frame::after {
+      content: '';
+      position: absolute;
+      width: 20px; height: 20px;
+      border-color: var(--accent);
+      border-style: solid;
+      opacity: 0.6;
+    }
+    .showreel-frame::before {
+      top: -1px; left: -1px;
+      border-width: 2px 0 0 2px;
+    }
+    .showreel-frame::after {
+      bottom: -1px; right: -1px;
+      border-width: 0 2px 2px 0;
+    }
+    .play-btn {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80px; height: 80px;
+      border: 1px solid rgba(200,169,126,0.4);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: none;
+      transition: all 0.3s;
+    }
+    .play-btn::before {
+      content: '';
+      width: 0; height: 0;
+      border-style: solid;
+      border-width: 10px 0 10px 18px;
+      border-color: transparent transparent transparent var(--accent);
+      margin-left: 4px;
+    }
+    .play-btn:hover {
+      background: rgba(200,169,126,0.1);
+      transform: translate(-50%, -50%) scale(1.08);
+    }
+
+    /* ===================== SECTION WRAPPER ===================== */
+    .section-wrap {
+      padding: 120px 52px;
+      position: relative;
+      z-index: 1;
+    }
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 24px;
+      margin-bottom: 72px;
+    }
+    .section-num {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--accent);
+      letter-spacing: 0.2em;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 300;
+      font-style: italic;
+      letter-spacing: 0.02em;
+    }
+    .section-rule {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+      margin-left: 12px;
+    }
+
+    /* ===================== SUB-CATEGORY LABEL ===================== */
+    .sub-label {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 28px;
+      margin-top: 64px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .sub-label::before {
+      content: '';
+      width: 24px;
+      height: 1px;
+      background: var(--accent);
+    }
+    .sub-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .sub-label:first-of-type {
+      margin-top: 0;
+    }
+
+    /* ===================== PROJECTS GRID (main 4) ===================== */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 2px;
+    }
+
+    /* ===================== THREE-COL GRID ===================== */
+    .projects-grid-3col {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 0;
+    }
+    .projects-grid-3col .card {
+      aspect-ratio: 4/3;
+    }
+
+    /* ===================== PACKSHOT CAROUSEL ===================== */
+    .packshot-carousel {
+      position: relative;
+      overflow: hidden;
+    }
+    .packshot-track {
+      display: flex;
+      gap: 16px;
+      transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .packshot-item {
+      flex: 0 0 calc(20% - 13px);
+      min-width: calc(20% - 13px);
+      aspect-ratio: 3/4;
+      background: #000000;
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+      cursor: none;
+      transition: box-shadow 0.3s, transform 0.3s;
+    }
+    .packshot-item:hover {
+      box-shadow: 0 8px 40px rgba(200,169,126,0.2);
+      transform: translateY(-4px);
+    }
+    .packshot-placeholder {
+      width: 100%; height: 100%;
+      background: #000000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.55rem;
+      color: rgba(200,169,126,0.5);
+      letter-spacing: 0.2em;
+    }
+    /* Images dans les packshots : contain pour ne pas cropper */
+    .packshot-placeholder img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    .packshot-label {
+      position: absolute;
+      bottom: 0;
+      left: 0; right: 0;
+      padding: 16px;
+      background: linear-gradient(to top, rgba(26,24,20,0.7), transparent);
+      font-family: var(--font-mono);
+      font-size: 0.55rem;
+      letter-spacing: 0.15em;
+      color: #fafaf8;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .packshot-item:hover .packshot-label { opacity: 1; }
+
+    .carousel-controls {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+      justify-content: flex-end;
+    }
+    .carousel-btn {
+      width: 44px; height: 44px;
+      border: 1px solid var(--border);
+      background: transparent;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: none;
+      transition: all 0.3s;
+      color: var(--text);
+      font-size: 1.1rem;
+    }
+    .carousel-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(200,169,126,0.05);
+    }
+
+    /* ===================== CARD ===================== */
+    .card {
+      background: var(--card-bg);
+      position: relative;
+      overflow: hidden;
+      cursor: none;
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.7s ease, transform 0.7s ease, box-shadow 0.4s ease;
+    }
+    .card.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .card:nth-child(1) { grid-column: span 7; aspect-ratio: 16/9; }
+    .card:nth-child(2) { grid-column: span 5; aspect-ratio: 4/5; }
+    .card:nth-child(3) { grid-column: span 4; aspect-ratio: 4/5; }
+    .card:nth-child(4) { grid-column: span 8; aspect-ratio: 16/9; }
+
+    .card:nth-child(1) { transition-delay: 0s; }
+    .card:nth-child(2) { transition-delay: 0.1s; }
+    .card:nth-child(3) { transition-delay: 0.15s; }
+    .card:nth-child(4) { transition-delay: 0.05s; }
+
+    .card-img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: grayscale(20%) brightness(0.95);
+      transition: filter 0.5s ease, transform 0.6s ease;
+    }
+    .card-placeholder {
+      width: 100%; height: 100%;
+      background: linear-gradient(135deg, #141210 0%, #1c1814 50%, #161310 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      color: rgba(200,169,126,0.5);
+      letter-spacing: 0.2em;
+    }
+    .card-placeholder::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(200,169,126,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(200,169,126,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    /* Images dans les cards de sélection : contain pour ne pas cropper */
+    .card-placeholder img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      filter: grayscale(20%) brightness(0.95);
+      transition: filter 0.5s ease, transform 0.6s ease;
+      position: relative;
+      z-index: 1;
+    }
+    .card:hover .card-placeholder img {
+      filter: grayscale(0%) brightness(1);
+      transform: scale(1.03);
+    }
+
+    .card-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(26,24,20,0.85) 0%, transparent 50%);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 28px 32px;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      z-index: 10;
+    }
+    .card:hover .card-overlay { opacity: 1; }
+    .card:hover .card-img { filter: grayscale(0%) brightness(1); transform: scale(1.03); }
+
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      font-weight: 300;
+      font-style: italic;
+      color: #fafaf8;
+    }
+    .card-meta {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      margin-top: 6px;
+    }
+    .card:hover {
+      box-shadow: 0 0 60px rgba(200,169,126,0.15);
+      z-index: 2;
+    }
+
+    /* 3-col cards — override nth-child grid-column */
+    .projects-grid-3col .card:nth-child(1),
+    .projects-grid-3col .card:nth-child(2),
+    .projects-grid-3col .card:nth-child(3),
+    .projects-grid-3col .card:nth-child(4),
+    .projects-grid-3col .card:nth-child(5),
+    .projects-grid-3col .card:nth-child(6) {
+      grid-column: auto;
+      aspect-ratio: 4/3;
+    }
+
+    /* ===================== ABOUT ===================== */
+    .about-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 100px;
+      align-items: start;
+    }
+    .about-text {
+      font-family: var(--font-display);
+      font-size: 1.55rem;
+      font-weight: 300;
+      line-height: 1.7;
+      color: var(--text);
+    }
+    .about-text em {
+      font-style: italic;
+      color: var(--accent);
+    }
+    .about-details {
+      padding-top: 8px;
+    }
+    .skill-group {
+      margin-bottom: 40px;
+      opacity: 0;
+      transform: translateX(20px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .skill-group.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .skill-group:nth-child(2) { transition-delay: 0.1s; }
+    .skill-group:nth-child(3) { transition-delay: 0.2s; }
+    .skill-group:nth-child(4) { transition-delay: 0.3s; }
+
+    .skill-label {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .skill-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .skill-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .tag {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 5px 12px;
+      border-radius: 2px;
+      transition: all 0.3s;
+    }
+    .tag:hover {
+      color: var(--text);
+      border-color: rgba(200,169,126,0.4);
+      background: rgba(200,169,126,0.07);
+    }
+
+    /* ===================== CONTACT ===================== */
+    .contact-section {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+    }
+    .contact-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+    .contact-headline {
+      font-family: var(--font-display);
+      font-size: clamp(3rem, 6vw, 5.5rem);
+      font-weight: 300;
+      line-height: 1.1;
+    }
+    .contact-headline em {
+      font-style: italic;
+      color: var(--accent);
+    }
+    .contact-links {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .contact-link {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0;
+      border-bottom: 1px solid var(--border);
+      text-decoration: none;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      transition: all 0.3s;
+      cursor: none;
+    }
+    .contact-link:hover {
+      color: var(--accent);
+      padding-left: 12px;
+      border-bottom-color: rgba(200,169,126,0.3);
+    }
+    .contact-arrow {
+      opacity: 0;
+      transition: opacity 0.3s, transform 0.3s;
+      transform: translateX(-8px);
+    }
+    .contact-link:hover .contact-arrow {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* ===================== FOOTER ===================== */
+    footer {
+      padding: 32px 52px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+    footer p {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+    }
+
+    /* ===================== ANIMATIONS ===================== */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===================== PACKSHOT HINT ===================== */
+    .packshot-hint {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .packshot-hint::before {
+      content: '↓';
+      color: var(--accent);
+      font-size: 0.8rem;
+    }
+
+    /* ===================== LIGHTBOX ===================== */
+    .lightbox-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(6,6,8,0.96);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+      backdrop-filter: blur(12px);
+    }
+    .lightbox-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .lightbox-inner {
+      width: 90vw;
+      max-width: 1100px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .lightbox-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .lightbox-title {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      font-weight: 300;
+      font-style: italic;
+      color: var(--text);
+    }
+    .lightbox-overlay * { cursor: none; }
+
+    .lightbox-close {
+      width: 44px; height: 44px;
+      border: 1px solid var(--border);
+      background: transparent;
+      border-radius: 50%;
+      color: var(--text);
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: none;
+      transition: all 0.3s;
+    }
+    .lightbox-close:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .lightbox-main {
+      position: relative;
+      aspect-ratio: 16/9;
+      background: #000000;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .lightbox-main-img {
+      width: 100%; height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .lightbox-main-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    .lightbox-main-img video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      background: #000;
+    }
+    .lightbox-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px; height: 44px;
+      border: 1px solid rgba(200,169,126,0.3);
+      background: rgba(6,6,8,0.6);
+      border-radius: 50%;
+      color: var(--text);
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: none;
+      transition: all 0.3s;
+    }
+    .lightbox-nav:hover { border-color: var(--accent); color: var(--accent); }
+    .lightbox-prev { left: 16px; }
+    .lightbox-next { right: 16px; }
+    .lightbox-thumbnails {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .lightbox-thumb {
+      flex: 0 0 80px;
+      height: 60px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+      cursor: none;
+      transition: border-color 0.3s;
+    }
+    .lightbox-thumb img,
+    .lightbox-thumb video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      pointer-events: none;
+    }
+    /* Video badge icon */
+    .lightbox-thumb .thumb-video-icon {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.35);
+    }
+    .lightbox-thumb .thumb-video-icon::after {
+      content: '▶';
+      font-size: 1rem;
+      color: rgba(255,255,255,0.85);
+    }
+    .lightbox-thumb.active,
+    .lightbox-thumb:hover {
+      border-color: var(--accent);
+    }
+    .lightbox-counter {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+    }
+    .packshot-item { cursor: none; }
+
+    /* ===================== OTHER WORKS — fond noir pur ===================== */
+    .other-works-wrap {
+      background: #000000 !important;
+      padding: 64px 52px;
+      position: relative;
+      z-index: 1;
+      margin-top: 0;
+    }
+    .other-works-wrap .card {
+      background: #000000 !important;
+    }
+    .other-works-wrap .card-placeholder {
+      background: #000000 !important;
+    }
+
+    /* ===================== VIDEO CARD — thumbnail + play overlay ===================== */
+    .card-video-thumb {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      display: block;
+      background: #000000;
+    }
+    .card-video-thumb img,
+    .card-video-thumb video.thumb-video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      filter: grayscale(20%) brightness(0.95);
+      transition: filter 0.5s ease, transform 0.6s ease;
+      position: relative;
+      z-index: 1;
+    }
+    .card:hover .card-video-thumb img,
+    .card:hover .card-video-thumb video.thumb-video {
+      filter: grayscale(0%) brightness(1);
+      transform: scale(1.03);
+    }
+    .card-play-icon {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.25);
+      transition: background 0.3s, opacity 0.3s;
+      opacity: 0;
+    }
+    .card:hover .card-play-icon {
+      background: rgba(0,0,0,0.1);
+    }
+    .card-play-icon::after {
+      content: '';
+      width: 0; height: 0;
+      border-style: solid;
+      border-width: 18px 0 18px 32px;
+      border-color: transparent transparent transparent rgba(200,169,126,0.9);
+      filter: drop-shadow(0 0 12px rgba(200,169,126,0.5));
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .card:hover .card-play-icon::after {
+      border-color: transparent transparent transparent var(--accent);
+      transform: scale(1.1);
+    }
+
+    /* ===================== VIDEO LIGHTBOX ===================== */
+    .video-lightbox-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.96);
+      z-index: 10001;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+      backdrop-filter: blur(14px);
+    }
+    .video-lightbox-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .video-lightbox-inner {
+      width: 88vw;
+      max-width: 1200px;
+      position: relative;
+    }
+    .video-lightbox-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .video-lightbox-title {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 300;
+      font-style: italic;
+      color: var(--text);
+    }
+    .video-lightbox-close {
+      width: 44px; height: 44px;
+      border: 1px solid var(--border);
+      background: transparent;
+      border-radius: 50%;
+      color: var(--text);
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: none;
+      transition: all 0.3s;
+    }
+    .video-lightbox-close:hover { border-color: var(--accent); color: var(--accent); }
+    .video-lightbox-player {
+      aspect-ratio: 16/9;
+      background: #000;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .video-lightbox-player video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    .video-lightbox-overlay * { cursor: none; }
+
+    /* ===================== RESPONSIVE ===================== */
+    @media (max-width: 900px) {
+      nav { padding: 24px 28px; }
+      .hero { padding: 0 28px 60px; }
+      #three-canvas { display: none; }
+      .section-wrap { padding: 80px 28px; }
+      .card:nth-child(1), .card:nth-child(2),
+      .card:nth-child(3), .card:nth-child(4) {
+        grid-column: span 12;
+        aspect-ratio: 16/9;
+      }
+      .projects-grid-3col { grid-template-columns: 1fr; }
+      .packshot-item { flex: 0 0 calc(50% - 8px); min-width: calc(50% - 8px); }
+      .about-inner { grid-template-columns: 1fr; gap: 60px; }
+      .contact-inner { grid-template-columns: 1fr; gap: 48px; }
+      footer { flex-direction: column; gap: 12px; text-align: center; }
+    }
+
+    @media (max-width: 600px) {
+      /* Nav : réduire gap et taille de police pour que tous les liens tiennent */
+      nav { padding: 18px 16px; }
+      .nav-links { gap: 16px; }
+      .nav-links a { font-size: 0.58rem; letter-spacing: 0.1em; }
+
+      /* Hero : nom complet visible */
+      .hero { padding: 0 20px 56px; }
+      .hero-name { font-size: clamp(2.8rem, 13vw, 5rem); }
+      .hero-name-row { gap: 24px; flex-wrap: wrap; }
+      .hero-portrait { width: 120px; height: 120px; }
+
+      /* Showreel : hauteur réduite pour eviter le crop */
+      .showreel { height: 56vw; min-height: 220px; }
+      .showreel-label { left: 20px; bottom: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Mouse glow -->
+<div id="mouse-glow"></div>
+<!-- Particles -->
+<canvas id="particles-canvas"></canvas>
+<!-- Cursor -->
+<div class="cursor-dot" id="dot"></div>
+<div class="cursor-ring" id="ring"></div>
+
+<!-- ======================== NAV ======================== -->
+<nav>
+  <a class="nav-logo" href="#">CB</a>
+  <ul class="nav-links">
+    <li><a href="#showreel">Showreel</a></li>
+    <li class="nav-item">
+      <a href="#projects">Projects <span class="nav-arrow">▾</span></a>
+      <div class="nav-dropdown">
+        <a href="#projects-selection">Selection</a>
+        <a href="#projects-packshots">Packshots</a>
+        <a href="#projects-others">Other Works</a>
+      </div>
+    </li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- ======================== HERO ======================== -->
+<section class="hero" id="home">
+  <div class="hero-bg"></div>
+  <div class="hero-lines">
+    <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 200 Q360 180 720 220 T1440 200" fill="none" stroke="rgba(200,169,126,0.5)" stroke-width="0.5"/>
+      <path d="M0 350 Q400 330 800 370 T1440 350" fill="none" stroke="rgba(200,169,126,0.35)" stroke-width="0.5"/>
+      <path d="M0 500 Q300 480 700 520 T1440 500" fill="none" stroke="rgba(200,169,126,0.25)" stroke-width="0.5"/>
+      <path d="M0 650 Q500 630 900 670 T1440 650" fill="none" stroke="rgba(107,143,163,0.35)" stroke-width="0.5"/>
+      <path d="M0 750 Q400 735 850 760 T1440 750" fill="none" stroke="rgba(107,143,163,0.25)" stroke-width="0.5"/>
+    </svg>
+  </div>
+
+  <div class="hero-tag">VFX — 3D Generalist — Environment</div>
+
+  <div class="hero-name-row">
+    <div class="hero-portrait">
+      <!-- Pour ajouter votre photo, remplacez le div .hero-portrait-placeholder par :
+           <img src="votre-photo.jpg" alt="Clémence Boulet"> -->
+           <img src="photo_profil.jpg">
+      <div class="hero-portrait-placeholder">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(200,169,126,0.6)" stroke-width="1.2">
+          <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+        </svg>
+        <span>photo</span>
+      </div>
+    </div>
+    <h1 class="hero-name">
+      Clémence<br><em>Boulet</em>
+    </h1>
+  </div>
+
+  <div class="hero-sub">
+    <p class="hero-desc">
+      Creating 3D environments<br>
+      and cinematic visual effects.<br>
+      Based in France.
+    </p>
+    <div class="hero-scroll">
+      <div class="scroll-line"></div>
+      scroll
+    </div>
+  </div>
+</section>
+
+<!-- ======================== SHOWREEL ======================== -->
+<section class="showreel" id="showreel">
+  <div class="showreel-iframe-wrap">
+    <iframe
+      src="https://player.vimeo.com/video/1183183703?autoplay=1&muted=1&loop=1&background=1"
+      frameborder="0"
+      allow="autoplay; fullscreen"
+      allowfullscreen>
+    </iframe>
+  </div>
+  <div class="showreel-frame"></div>
+  <div class="play-btn" title="Showreel"></div>
+  <span class="showreel-label">Showreel 2025</span>
+</section>
+
+<!-- ======================== PROJECTS ======================== -->
+<section class="section-wrap" id="projects">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <h2 class="section-title">Projects</h2>
+    <div class="section-rule"></div>
+  </div>
+
+  <!-- Main projects (4 images) -->
+  <div class="sub-label" id="projects-selection">Selection</div>
+  <div class="projects-grid">
+    <div class="card">
+      <div class="card-placeholder"><img src="basilica_day.jpg"></div>
+      <div class="card-overlay">
+        <h3 class="card-title">Eternal City</h3>
+        <p class="card-meta">Environment · 3ds Max</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-placeholder"><img src="colisee.jpg"></div>
+      <div class="card-overlay">
+        <h3 class="card-title">Futurism Coliseum</h3>
+        <p class="card-meta">Environment · 3ds Max</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-placeholder"><img src="nuit_hologram.png"></div>
+      <div class="card-overlay">
+        <h3 class="card-title">City</h3>
+        <p class="card-meta">Environment · 3ds Max</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-placeholder"><img src="entreprise.jpg"></div>
+      <div class="card-overlay">
+        <h3 class="card-title">Entreprise</h3>
+        <p class="card-meta">Terrain · Lighting</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Packshot carousel with lightbox -->
+  <div class="sub-label" id="projects-packshots">Packshot</div>
+  <p class="packshot-hint">Click on it to discover more</p>
+  <div class="packshot-carousel">
+    <div class="packshot-track" id="packshot-track">
+      <div class="packshot-item" data-project="0">
+        <div class="packshot-placeholder"><img src="tennis_v1.jpg"></div>
+        <div class="packshot-label">Packshot 01</div>
+      </div>
+      <div class="packshot-item" data-project="1">
+        <div class="packshot-placeholder"><img src="azzaro_top1.jpg"></div>
+        <div class="packshot-label">Packshot 02</div>
+      </div>
+      <div class="packshot-item" data-project="2">
+        <div class="packshot-placeholder"><img src="gibson_wireframe.jpg"></div>
+        <div class="packshot-label">Packshot 03</div>
+      </div>
+      <div class="packshot-item" data-project="3">
+        <div class="packshot-placeholder">TENNIS BALL</div>
+        <div class="packshot-label">Packshot 04</div>
+      </div>
+      <div class="packshot-item" data-project="4">
+        <div class="packshot-placeholder">Pendantif</div>
+        <div class="packshot-label">Packshot 05</div>
+      </div>
+    </div>
+    <div class="carousel-controls">
+      <button class="carousel-btn" id="prev-btn">←</button>
+      <button class="carousel-btn" id="next-btn">→</button>
+    </div>
+  </div>
+
+
+</section>
+
+<!-- ======================== OTHER WORKS ======================== -->
+<div class="other-works-wrap" id="projects-others">
+  <div class="sub-label" style="margin-top:0;">Other Works</div>
+  <div class="projects-grid-3col">
+
+    <div class="card" style="opacity:1;transform:none;background:#000000;">
+      <div class="card-placeholder" style="background:#000000;"><img src="vaneloppe_car.png"></div>
+      <div class="card-overlay">
+        <h3 class="card-title">Vanellope's car</h3>
+        <p class="card-meta">Environment · Render</p>
+      </div>
+    </div>
+
+    <div class="card" style="opacity:1;transform:none;background:#000000;">
+      <div class="card-placeholder" style="background:#000000;"><img src="boo_jour.jpg"></div>
+      <div class="card-overlay">
+        <h3 class="card-title">Boo's room</h3>
+        <p class="card-meta">Environment · Lighting</p>
+      </div>
+    </div>
+
+    <!-- Card vidéo : autoplay en boucle, clic ouvre lightbox -->
+    <div class="card card-has-video" id="hedgehog-card" style="opacity:1;transform:none;background:#000000;"
+         data-video="https://player.vimeo.com/video/1184421233" data-title="The Hedgehog">
+      <iframe
+        src="https://player.vimeo.com/video/1184421233?autoplay=1&muted=1&loop=1&background=1"
+        frameborder="0"
+        allow="autoplay; fullscreen"
+        allowfullscreen
+        style="position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none;z-index:0;">
+      </iframe>
+      <div class="card-overlay">
+        <h3 class="card-title">The Hedgehog</h3>
+        <p class="card-meta">FX · Water simulation · Sculpt</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ======================== ABOUT ======================== -->
+<section class="section-wrap" id="about" style="background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <h2 class="section-title">About</h2>
+    <div class="section-rule"></div>
+  </div>
+
+  <div class="about-inner">
+    <div class="about-text">
+      I am a <em>VFX & 3D generalist artist</em> passionate about creating immersive environments and narrative worlds. My work explores the boundary between the <em>real and the imaginary</em>, with a particular focus on light, atmosphere, and visual storytelling.
+    </div>
+
+    <div class="about-details">
+      <div class="skill-group">
+        <div class="skill-label">3D & Simulation</div>
+        <div class="skill-tags">
+          <span class="tag">Houdini</span>
+          <span class="tag">3ds Max</span>
+          <span class="tag">ZBrush</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <div class="skill-label">Compositing & VFX</div>
+        <div class="skill-tags">
+          <span class="tag">Nuke</span>
+          <span class="tag">After Effects</span>
+          <span class="tag">Premiere Pro</span>
+          <span class="tag">Photoshop</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <div class="skill-label">Texture & Rendering</div>
+        <div class="skill-tags">
+          <span class="tag">Substance Painter</span>
+          <span class="tag">Arnold</span>
+          <span class="tag">Karma</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <div class="skill-label">Specialties</div>
+        <div class="skill-tags">
+          <span class="tag">Environment Design</span>
+          <span class="tag">FX Simulation</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== CONTACT ======================== -->
+<section class="section-wrap contact-section" id="contact">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <h2 class="section-title">Contact</h2>
+    <div class="section-rule"></div>
+  </div>
+
+  <div class="contact-inner">
+    <div class="contact-headline">
+      Let's work<br><em>together</em>.
+    </div>
+
+    <div class="contact-links">
+      <a class="contact-link" href="mailto:clemclem.blt@gmail.com">
+        <span>clemclem.blt@gmail.com</span>
+        <span class="contact-arrow">→</span>
+      </a>
+      <a class="contact-link" href="https://www.linkedin.com/in/cl%C3%A9mence-boulet-0a5647293/" target="_blank">
+        <span>LinkedIn</span>
+        <span class="contact-arrow">→</span>
+      </a>
+      <a class="contact-link" href="https://www.therookies.co/clemenceblt" target="_blank">
+        <span>TheRookies</span>
+        <span class="contact-arrow">→</span>
+      </a>
+      <a class="contact-link" href="https://vimeo.com/1183183703?share=copy&fl=sv&fe=ci" target="_blank">
+        <span>Vimeo</span>
+        <span class="contact-arrow">→</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== FOOTER ======================== -->
+<footer>
+  <p>© 2026 Clémence Boulet — All rights reserved</p>
+  <p>VFX & 3D Generalist — Environment</p>
+</footer>
+
+<!-- ======================== VIDEO LIGHTBOX ======================== -->
+<div class="video-lightbox-overlay" id="video-lightbox">
+  <div class="video-lightbox-inner">
+    <div class="video-lightbox-header">
+      <div class="video-lightbox-title" id="vlb-title"></div>
+      <button class="video-lightbox-close" id="vlb-close">✕</button>
+    </div>
+    <div class="video-lightbox-player">
+      <iframe id="vlb-iframe" src="" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen style="width:100%;height:100%;border:0;display:block;"></iframe>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== LIGHTBOX ======================== -->
+<div class="lightbox-overlay" id="lightbox">
+  <div class="lightbox-inner">
+    <div class="lightbox-header">
+      <div class="lightbox-title" id="lightbox-title">Packshot 01</div>
+      <div style="display:flex;align-items:center;gap:20px;">
+        <span class="lightbox-counter" id="lightbox-counter">1 / 5</span>
+        <button class="lightbox-close" id="lightbox-close">✕</button>
+      </div>
+    </div>
+    <div class="lightbox-main">
+      <div class="lightbox-main-img" id="lightbox-main-img">PACKSHOT IMAGE</div>
+      <button class="lightbox-nav lightbox-prev" id="lb-prev">←</button>
+      <button class="lightbox-nav lightbox-next" id="lb-next">→</button>
+    </div>
+    <div class="lightbox-thumbnails" id="lightbox-thumbs"></div>
+  </div>
+</div>
+
+<script>
+// ====== CUSTOM CURSOR ======
+const dot  = document.getElementById('dot');
+const ring = document.getElementById('ring');
+const glow = document.getElementById('mouse-glow');
+let mx = 0, my = 0, rx = 0, ry = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  dot.style.left  = mx + 'px';
+  dot.style.top   = my + 'px';
+  glow.style.left = mx + 'px';
+  glow.style.top  = my + 'px';
+});
+
+(function animRing() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  ring.style.left = rx + 'px';
+  ring.style.top  = ry + 'px';
+  requestAnimationFrame(animRing);
+})();
+
+document.querySelectorAll('a, button, .card, .play-btn, .packshot-item').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    ring.style.width  = '60px';
+    ring.style.height = '60px';
+    ring.style.borderColor = 'rgba(200,169,126,0.9)';
+  });
+  el.addEventListener('mouseleave', () => {
+    ring.style.width  = '36px';
+    ring.style.height = '36px';
+    ring.style.borderColor = 'rgba(200,169,126,0.6)';
+  });
+});
+
+// ====== PARTICLES ======
+const canvas = document.getElementById('particles-canvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+
+function resizeCanvas() {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+function createParticles() {
+  particles = [];
+  const count = Math.floor(window.innerWidth / 14);
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 1.5 + 0.3,
+      dx: (Math.random() - 0.5) * 0.3,
+      dy: (Math.random() - 0.5) * 0.3,
+      alpha: Math.random() * 0.35 + 0.05
+    });
+  }
+}
+createParticles();
+
+function animParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles.forEach(p => {
+    p.x += p.dx;
+    p.y += p.dy;
+    if (p.x < 0) p.x = canvas.width;
+    if (p.x > canvas.width) p.x = 0;
+    if (p.y < 0) p.y = canvas.height;
+    if (p.y > canvas.height) p.y = 0;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(200,169,126,${p.alpha})`;
+    ctx.fill();
+  });
+  requestAnimationFrame(animParticles);
+}
+animParticles();
+
+
+
+// ====== GSAP ANIMATIONS ======
+if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+
+  gsap.from('.section-header', {
+    scrollTrigger: { trigger: '#projects', start: 'top 80%' },
+    y: 50, opacity: 0, duration: 1, ease: 'power3.out'
+  });
+
+  gsap.from('.sub-label', {
+    scrollTrigger: { trigger: '#projects', start: 'top 70%', toggleActions: 'play none none none' },
+    y: 30, opacity: 0, duration: 0.8, stagger: 0.2, ease: 'power2.out'
+  });
+
+  gsap.from('.packshot-item', {
+    scrollTrigger: { trigger: '.packshot-carousel', start: 'top 85%' },
+    y: 40, opacity: 0, duration: 0.7, stagger: 0.1, ease: 'power2.out'
+  });
+}
+
+// ====== SCROLL REVEAL (fallback / cards) ======
+const revealEls = document.querySelectorAll('.card, .skill-group');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1 });
+revealEls.forEach(el => observer.observe(el));
+
+// ====== NAV SCROLL ======
+window.addEventListener('scroll', () => {
+  const nav = document.querySelector('nav');
+  nav.style.backdropFilter = window.scrollY > 60 ? 'blur(12px)' : 'none';
+});
+
+// ====== VIDEO LIGHTBOX (Other Works & Selection) ======
+const videoLightbox = document.getElementById('video-lightbox');
+const vlbIframe     = document.getElementById('vlb-iframe');
+const vlbTitle      = document.getElementById('vlb-title');
+const vlbClose      = document.getElementById('vlb-close');
+
+function openVideoLightbox(src, title) {
+  const url = src.includes('?') ? src + '&autoplay=1' : src + '?autoplay=1';
+  vlbIframe.src = url;
+  vlbTitle.textContent = title || '';
+  videoLightbox.classList.add('active');
+  document.body.style.overflow = 'hidden';
+  dot.style.zIndex  = '10020';
+  ring.style.zIndex = '10019';
+  glow.style.zIndex = '10018';
+}
+
+function closeVideoLightbox() {
+  videoLightbox.classList.remove('active');
+  vlbIframe.src = '';
+  document.body.style.overflow = '';
+  dot.style.zIndex  = '9999';
+  ring.style.zIndex = '9998';
+  glow.style.zIndex = '9990';
+}
+
+vlbClose.addEventListener('click', closeVideoLightbox);
+videoLightbox.addEventListener('click', e => { if (e.target === videoLightbox) closeVideoLightbox(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && videoLightbox.classList.contains('active')) closeVideoLightbox();
+});
+
+// ====== HEDGEHOG CARD — clic ouvre lightbox Vimeo ======
+const hedgehogCard = document.getElementById('hedgehog-card');
+if (hedgehogCard) {
+  hedgehogCard.addEventListener('click', () => {
+    const src   = hedgehogCard.getAttribute('data-video');
+    const title = hedgehogCard.getAttribute('data-title');
+    if (src) openVideoLightbox(src, title);
+  });
+}
+
+// Attacher le clic lightbox sur les autres cards avec data-video (pas hedgehog)
+document.querySelectorAll('.card-has-video:not(#hedgehog-card)').forEach(card => {
+  card.addEventListener('click', () => {
+    const src   = card.getAttribute('data-video');
+    const title = card.getAttribute('data-title');
+    if (src) openVideoLightbox(src, title);
+  });
+});
+
+// Cursor hover pour le bouton fermer de la video lightbox
+vlbClose.addEventListener('mouseenter', () => {
+  ring.style.width  = '60px';
+  ring.style.height = '60px';
+  ring.style.borderColor = 'rgba(200,169,126,0.9)';
+});
+vlbClose.addEventListener('mouseleave', () => {
+  ring.style.width  = '36px';
+  ring.style.height = '36px';
+  ring.style.borderColor = 'rgba(200,169,126,0.6)';
+});
+
+// ====== PLAY BUTTON — désactivé (showreel via iframe Vimeo) ======
+
+// ====== PACKSHOT CAROUSEL ======
+const track = document.getElementById('packshot-track');
+const prevBtn = document.getElementById('prev-btn');
+const nextBtn = document.getElementById('next-btn');
+let currentIndex = 0;
+const totalItems = track ? track.children.length : 0;
+const visibleItems = () => window.innerWidth <= 900 ? 2 : 5;
+
+function updateCarousel() {
+  if (!track) return;
+  const itemWidth = track.children[0].offsetWidth + 16;
+  const maxIndex = Math.max(0, totalItems - visibleItems());
+  currentIndex = Math.max(0, Math.min(currentIndex, maxIndex));
+  track.style.transform = `translateX(-${currentIndex * itemWidth}px)`;
+}
+
+if (prevBtn) prevBtn.addEventListener('click', () => { currentIndex = Math.max(0, currentIndex - 1); updateCarousel(); });
+if (nextBtn) nextBtn.addEventListener('click', () => { currentIndex = Math.min(totalItems - visibleItems(), currentIndex + 1); updateCarousel(); });
+window.addEventListener('resize', updateCarousel);
+
+// ====== PACKSHOT LIGHTBOX ======
+// Pour chaque packshot, listez vos fichiers dans "media".
+// type: 'image' pour jpg/png, 'video' pour mov/mp4
+// src: chemin relatif vers votre fichier
+const packshotProjects = [
+  {
+    title: 'Packshot 01',
+    media: [
+      { type: 'vimeo', src: 'https://player.vimeo.com/video/1184422651' },
+      { type: 'image', src: 'tennis_v1.jpg' },
+      { type: 'image', src: 'tennis_v2.jpg' },
+      { type: 'image', src: 'tennis_v3.jpg' },
+      { type: 'vimeo', src: 'https://player.vimeo.com/video/1184430422' },
+      { type: 'vimeo', src: 'https://player.vimeo.com/video/1184428131' },
+    ]
+  },
+  {
+    title: 'Packshot 02',
+    media: [
+      { type: 'image', src: 'azzaro_top.jpg' },
+      { type: 'image', src: 'azzaro_profil.jpg' },
+       { type: 'image', src: 'azzaro_face.jpg' },
+      { type: 'image', src: 'azzaro_box.jpg' },
+      { type: 'image', src: 'azzaro_1.jpg' },
+      { type: 'image', src: 'azzaro_2.jpg' },
+      { type: 'image', src: 'azzaro_wireframe.jpg' },
+    ]
+  },
+  {
+    title: 'Packshot 03',
+    media: [
+       { type: 'image', src: 'gibson_rose.jpg' },
+        { type: 'image', src: 'gibson_wireframe.jpg' },
+      { type: 'image', src: 'gibson_face.jpg' },
+      { type: 'vimeo', src: 'https://player.vimeo.com/video/1184434328' },
+    ]
+  },
+  {
+    title: 'Packshot 04',
+    media: [
+      { type: 'image', src: 'packshot04_viewA.jpg' },
+      { type: 'image', src: 'packshot04_viewB.jpg' },
+      { type: 'video', src: 'packshot04_viewC.mov' },
+      { type: 'image', src: 'packshot04_detail.jpg' },
+    ]
+  },
+  {
+    title: 'Packshot 05',
+    media: [
+      { type: 'image', src: 'packshot05_viewA.jpg' },
+      { type: 'image', src: 'packshot05_viewB.jpg' },
+      { type: 'video', src: 'packshot05_viewC.mov' },
+      { type: 'image', src: 'packshot05_detail.jpg' },
+    ]
+  }
+];
+
+const lightbox      = document.getElementById('lightbox');
+const lbTitle       = document.getElementById('lightbox-title');
+const lbMainImg     = document.getElementById('lightbox-main-img');
+const lbCounter     = document.getElementById('lightbox-counter');
+const lbThumbs      = document.getElementById('lightbox-thumbs');
+const lbClose       = document.getElementById('lightbox-close');
+const lbPrev        = document.getElementById('lb-prev');
+const lbNext        = document.getElementById('lb-next');
+
+let lbProjectIndex  = 0;
+let lbImageIndex    = 0;
+
+function openLightbox(projectIdx) {
+  lbProjectIndex = projectIdx;
+  lbImageIndex   = 0;
+  renderLightbox();
+  lightbox.classList.add('active');
+  document.body.style.overflow = 'hidden';
+  // Re-enable cursor tracking inside lightbox
+  dot.style.zIndex  = '10010';
+  ring.style.zIndex = '10009';
+  glow.style.zIndex = '10008';
+}
+
+function closeLightbox() {
+  // Stopper toutes les vidéos/iframes en cours dans le lightbox
+  lbMainImg.querySelectorAll('video').forEach(v => { v.pause(); v.src = ''; });
+  lbMainImg.querySelectorAll('iframe').forEach(f => { f.src = ''; });
+  lightbox.classList.remove('active');
+  document.body.style.overflow = '';
+  dot.style.zIndex  = '9999';
+  ring.style.zIndex = '9998';
+  glow.style.zIndex = '9990';
+}
+
+function renderLightbox() {
+  const project = packshotProjects[lbProjectIndex];
+  const media   = project.media;
+  const item    = media[lbImageIndex];
+
+  lbTitle.textContent   = project.title;
+  lbCounter.textContent = `${lbImageIndex + 1} / ${media.length}`;
+
+  // Stopper la vidéo/iframe en cours avant de changer de slide
+  lbMainImg.querySelectorAll('video').forEach(v => { v.pause(); v.src = ''; });
+  lbMainImg.querySelectorAll('iframe').forEach(f => { f.src = ''; });
+
+  // Render main media
+  lbMainImg.innerHTML = '';
+  if (item.type === 'vimeo') {
+    // Extraire l'ID Vimeo depuis n'importe quelle forme d'URL
+    const vimeoId = item.src.match(/(?:vimeo\.com\/(?:video\/)?|player\.vimeo\.com\/video\/)(\d+)/)?.[1];
+    const embedUrl = vimeoId
+      ? `https://player.vimeo.com/video/${vimeoId}?autoplay=1&color=c8a97e`
+      : item.src;
+    const frame = document.createElement('iframe');
+    frame.src = embedUrl;
+    frame.setAttribute('frameborder', '0');
+    frame.setAttribute('allow', 'autoplay; fullscreen');
+    frame.setAttribute('allowfullscreen', '');
+    frame.style.width = '100%';
+    frame.style.height = '100%';
+    frame.style.border = '0';
+    frame.style.display = 'block';
+    lbMainImg.appendChild(frame);
+  } else if (item.type === 'video') {
+    const vid = document.createElement('video');
+    vid.src = item.src;
+    vid.controls = true;
+    vid.autoplay = true;
+    vid.playsInline = true;
+    vid.style.cursor = 'default';
+    vid.style.width = '100%';
+    vid.style.height = '100%';
+    vid.style.objectFit = 'contain';
+    vid.addEventListener('webkitfullscreenchange', () => { if (document.webkitFullscreenElement === vid) document.webkitExitFullscreen && document.webkitExitFullscreen(); });
+    vid.addEventListener('fullscreenchange', () => { if (document.fullscreenElement === vid) document.exitFullscreen && document.exitFullscreen(); });
+    lbMainImg.appendChild(vid);
+  } else {
+    const img = document.createElement('img');
+    img.src = item.src;
+    img.alt = project.title;
+    lbMainImg.appendChild(img);
+  }
+
+  // Render thumbnails
+  lbThumbs.innerHTML = '';
+  media.forEach((m, i) => {
+    const thumb = document.createElement('div');
+    thumb.className = 'lightbox-thumb' + (i === lbImageIndex ? ' active' : '');
+
+    if (m.type === 'vimeo') {
+      // Thumbnail Vimeo : première frame via l'API thumbnail Vimeo
+      const vimeoId = m.src.match(/\/video\/(\d+)/)?.[1];
+      if (vimeoId) {
+        const img = document.createElement('img');
+        img.src = `https://vumbnail.com/${vimeoId}.jpg`;
+        img.alt = '';
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
+        img.style.display = 'block';
+        thumb.appendChild(img);
+      } else {
+        thumb.style.background = '#111';
+      }
+      const icon = document.createElement('div');
+      icon.className = 'thumb-video-icon';
+      thumb.appendChild(icon);
+    } else if (m.type === 'video') {
+      const vid = document.createElement('video');
+      vid.src = m.src;
+      vid.preload = 'metadata';
+      vid.muted = true;
+      vid.playsInline = true;
+      // Forcer le chargement de la première frame
+      vid.addEventListener('loadedmetadata', () => { vid.currentTime = 0.001; });
+      thumb.appendChild(vid);
+      const icon = document.createElement('div');
+      icon.className = 'thumb-video-icon';
+      thumb.appendChild(icon);
+    } else {
+      const img = document.createElement('img');
+      img.src = m.src;
+      img.alt = '';
+      thumb.appendChild(img);
+    }
+
+    thumb.addEventListener('click', () => { lbImageIndex = i; renderLightbox(); });
+    lbThumbs.appendChild(thumb);
+  });
+}
+
+function lbGoNext() {
+  const total = packshotProjects[lbProjectIndex].media.length;
+  lbImageIndex = (lbImageIndex + 1) % total;
+  renderLightbox();
+}
+
+function lbGoPrev() {
+  const total = packshotProjects[lbProjectIndex].media.length;
+  lbImageIndex = (lbImageIndex - 1 + total) % total;
+  renderLightbox();
+}
+
+// Attach click on packshot items
+document.querySelectorAll('.packshot-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const idx = parseInt(item.getAttribute('data-project')) || 0;
+    openLightbox(idx);
+  });
+});
+
+lbClose.addEventListener('click', closeLightbox);
+lbPrev.addEventListener('click', lbGoPrev);
+lbNext.addEventListener('click', lbGoNext);
+
+// Close on overlay click
+lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
+
+// Keyboard navigation
+document.addEventListener('keydown', e => {
+  if (!lightbox.classList.contains('active')) return;
+  if (e.key === 'Escape') closeLightbox();
+  if (e.key === 'ArrowRight') lbGoNext();
+  if (e.key === 'ArrowLeft')  lbGoPrev();
+});
+
+// Add lightbox buttons to cursor hover effect
+document.querySelectorAll('.lightbox-close, .lightbox-nav, .lightbox-thumb').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    ring.style.width  = '60px';
+    ring.style.height = '60px';
+    ring.style.borderColor = 'rgba(200,169,126,0.9)';
+  });
+  el.addEventListener('mouseleave', () => {
+    ring.style.width  = '36px';
+    ring.style.height = '36px';
+    ring.style.borderColor = 'rgba(200,169,126,0.6)';
+  });
+});
+</script>
+
+</body>
+</html>
