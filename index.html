@@ -1791,7 +1791,7 @@ const packshotProjects = [
        { type: 'image', src: 'gibson_rose.jpg' },
         { type: 'image', src: 'gibson_wireframe.jpg' },
       { type: 'image', src: 'gibson_face.jpg' },
-      { type: 'video', src: 'gibson_turn.mov' },
+      { type: 'vimeo', src: 'https://player.vimeo.com/video/1184434328' },
     ]
   },
   {
@@ -1906,8 +1906,20 @@ function renderLightbox() {
     thumb.className = 'lightbox-thumb' + (i === lbImageIndex ? ' active' : '');
 
     if (m.type === 'vimeo') {
-      // Thumbnail Vimeo : fond noir + icône play
-      thumb.style.background = '#111';
+      // Thumbnail Vimeo : première frame via l'API thumbnail Vimeo
+      const vimeoId = m.src.match(/\/video\/(\d+)/)?.[1];
+      if (vimeoId) {
+        const img = document.createElement('img');
+        img.src = `https://vumbnail.com/${vimeoId}.jpg`;
+        img.alt = '';
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
+        img.style.display = 'block';
+        thumb.appendChild(img);
+      } else {
+        thumb.style.background = '#111';
+      }
       const icon = document.createElement('div');
       icon.className = 'thumb-video-icon';
       thumb.appendChild(icon);
@@ -1915,6 +1927,10 @@ function renderLightbox() {
       const vid = document.createElement('video');
       vid.src = m.src;
       vid.preload = 'metadata';
+      vid.muted = true;
+      vid.playsInline = true;
+      // Forcer le chargement de la première frame
+      vid.addEventListener('loadedmetadata', () => { vid.currentTime = 0.001; });
       thumb.appendChild(vid);
       const icon = document.createElement('div');
       icon.className = 'thumb-video-icon';
