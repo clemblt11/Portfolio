@@ -378,6 +378,24 @@
       object-fit: cover;
       opacity: 0.75;
     }
+    .showreel iframe {
+      border: 0;
+      pointer-events: none;
+    }
+    .showreel-iframe-wrap {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 177.78vh;
+      height: 100vh;
+      min-width: 100vw;
+      min-height: 56.25vw;
+    }
+    .showreel-iframe-wrap iframe {
+      width: 100%;
+      height: 100%;
+    }
     .showreel-label {
       position: absolute;
       bottom: 48px;
@@ -677,6 +695,7 @@
       padding: 28px 32px;
       opacity: 0;
       transition: opacity 0.4s ease;
+      z-index: 10;
     }
     .card:hover .card-overlay { opacity: 1; }
     .card:hover .card-img { filter: grayscale(0%) brightness(1); transform: scale(1.03); }
@@ -1038,6 +1057,137 @@
     }
     .packshot-item { cursor: none; }
 
+    /* ===================== OTHER WORKS — fond noir pur ===================== */
+    .other-works-wrap {
+      background: #000000 !important;
+      padding: 64px 52px;
+      position: relative;
+      z-index: 1;
+      margin-top: 0;
+    }
+    .other-works-wrap .card {
+      background: #000000 !important;
+    }
+    .other-works-wrap .card-placeholder {
+      background: #000000 !important;
+    }
+
+    /* ===================== VIDEO CARD — thumbnail + play overlay ===================== */
+    .card-video-thumb {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      display: block;
+      background: #000000;
+    }
+    .card-video-thumb img,
+    .card-video-thumb video.thumb-video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      filter: grayscale(20%) brightness(0.95);
+      transition: filter 0.5s ease, transform 0.6s ease;
+      position: relative;
+      z-index: 1;
+    }
+    .card:hover .card-video-thumb img,
+    .card:hover .card-video-thumb video.thumb-video {
+      filter: grayscale(0%) brightness(1);
+      transform: scale(1.03);
+    }
+    .card-play-icon {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.25);
+      transition: background 0.3s, opacity 0.3s;
+      opacity: 0;
+    }
+    .card:hover .card-play-icon {
+      background: rgba(0,0,0,0.1);
+    }
+    .card-play-icon::after {
+      content: '';
+      width: 0; height: 0;
+      border-style: solid;
+      border-width: 18px 0 18px 32px;
+      border-color: transparent transparent transparent rgba(200,169,126,0.9);
+      filter: drop-shadow(0 0 12px rgba(200,169,126,0.5));
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .card:hover .card-play-icon::after {
+      border-color: transparent transparent transparent var(--accent);
+      transform: scale(1.1);
+    }
+
+    /* ===================== VIDEO LIGHTBOX ===================== */
+    .video-lightbox-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.96);
+      z-index: 10001;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+      backdrop-filter: blur(14px);
+    }
+    .video-lightbox-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .video-lightbox-inner {
+      width: 88vw;
+      max-width: 1200px;
+      position: relative;
+    }
+    .video-lightbox-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .video-lightbox-title {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 300;
+      font-style: italic;
+      color: var(--text);
+    }
+    .video-lightbox-close {
+      width: 44px; height: 44px;
+      border: 1px solid var(--border);
+      background: transparent;
+      border-radius: 50%;
+      color: var(--text);
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: none;
+      transition: all 0.3s;
+    }
+    .video-lightbox-close:hover { border-color: var(--accent); color: var(--accent); }
+    .video-lightbox-player {
+      aspect-ratio: 16/9;
+      background: #000;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .video-lightbox-player video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    .video-lightbox-overlay * { cursor: none; }
+
     /* ===================== RESPONSIVE ===================== */
     @media (max-width: 900px) {
       nav { padding: 24px 28px; }
@@ -1054,6 +1204,23 @@
       .about-inner { grid-template-columns: 1fr; gap: 60px; }
       .contact-inner { grid-template-columns: 1fr; gap: 48px; }
       footer { flex-direction: column; gap: 12px; text-align: center; }
+    }
+
+    @media (max-width: 600px) {
+      /* Nav : réduire gap et taille de police pour que tous les liens tiennent */
+      nav { padding: 18px 16px; }
+      .nav-links { gap: 16px; }
+      .nav-links a { font-size: 0.58rem; letter-spacing: 0.1em; }
+
+      /* Hero : nom complet visible */
+      .hero { padding: 0 20px 56px; }
+      .hero-name { font-size: clamp(2.8rem, 13vw, 5rem); }
+      .hero-name-row { gap: 24px; flex-wrap: wrap; }
+      .hero-portrait { width: 120px; height: 120px; }
+
+      /* Showreel : hauteur réduite pour eviter le crop */
+      .showreel { height: 56vw; min-height: 220px; }
+      .showreel-label { left: 20px; bottom: 24px; }
     }
   </style>
 </head>
@@ -1132,12 +1299,17 @@
 
 <!-- ======================== SHOWREEL ======================== -->
 <section class="showreel" id="showreel">
-  <video autoplay muted loop playsinline>
-    <source src="showreel.mp4" type="video/mp4">
-  </video>
+  <div class="showreel-iframe-wrap">
+    <iframe
+      src="https://player.vimeo.com/video/1183183703?autoplay=1&muted=1&loop=1&background=1"
+      frameborder="0"
+      allow="autoplay; fullscreen"
+      allowfullscreen>
+    </iframe>
+  </div>
   <div class="showreel-frame"></div>
   <div class="play-btn" title="Showreel"></div>
-  <span class="showreel-label">Showreel 2024</span>
+  <span class="showreel-label">Showreel 2025</span>
 </section>
 
 <!-- ======================== PROJECTS ======================== -->
@@ -1168,8 +1340,8 @@
     <div class="card">
       <div class="card-placeholder"><img src="nuit_hologram.png"></div>
       <div class="card-overlay">
-        <h3 class="card-title">Island</h3>
-        <p class="card-meta">Hard Surface · Nuke</p>
+        <h3 class="card-title">City</h3>
+        <p class="card-meta">Environment · 3ds Max</p>
       </div>
     </div>
     <div class="card">
@@ -1213,34 +1385,48 @@
     </div>
   </div>
 
-  <!-- Other works (3 images side by side) -->
-  <div class="sub-label" id="projects-others">Other Works</div>
+
+</section>
+
+<!-- ======================== OTHER WORKS ======================== -->
+<div class="other-works-wrap" id="projects-others">
+  <div class="sub-label" style="margin-top:0;">Other Works</div>
   <div class="projects-grid-3col">
-    <div class="card" style="opacity:1;transform:none;">
-      <div class="card-placeholder"><img src="vaneloppe_car.png"></div>
+
+    <div class="card" style="opacity:1;transform:none;background:#000000;">
+      <div class="card-placeholder" style="background:#000000;"><img src="vaneloppe_car.png"></div>
       <div class="card-overlay">
         <h3 class="card-title">Vanellope's car</h3>
         <p class="card-meta">Environment · Render</p>
       </div>
     </div>
-    <div class="card" style="opacity:1;transform:none;">
-      <div class="card-placeholder"><img src="boo_jour.jpg"></div>
+
+    <div class="card" style="opacity:1;transform:none;background:#000000;">
+      <div class="card-placeholder" style="background:#000000;"><img src="boo_jour.jpg"></div>
       <div class="card-overlay">
         <h3 class="card-title">Boo's room</h3>
         <p class="card-meta">Environment · Lighting</p>
       </div>
     </div>
-    <div class="card" style="opacity:1;transform:none;">
-      <div class="card-placeholder">  <video width="450">
-    <source src="herisson.mp4" type="video/mp4"></video></div>
+
+    <!-- Card vidéo : autoplay en boucle, clic ouvre lightbox -->
+    <div class="card card-has-video" id="hedgehog-card" style="opacity:1;transform:none;background:#000000;"
+         data-video="https://player.vimeo.com/video/1184421233" data-title="The Hedgehog">
+      <iframe
+        src="https://player.vimeo.com/video/1184421233?autoplay=1&muted=1&loop=1&background=1"
+        frameborder="0"
+        allow="autoplay; fullscreen"
+        allowfullscreen
+        style="position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none;z-index:0;">
+      </iframe>
       <div class="card-overlay">
-        <h3 class="card-title">The hedgehog</h3>
+        <h3 class="card-title">The Hedgehog</h3>
         <p class="card-meta">FX · Water simulation · Sculpt</p>
       </div>
     </div>
-  </div>
 
-</section>
+  </div>
+</div>
 
 <!-- ======================== ABOUT ======================== -->
 <section class="section-wrap" id="about" style="background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
@@ -1331,6 +1517,19 @@
   <p>© 2026 Clémence Boulet — All rights reserved</p>
   <p>VFX & 3D Generalist — Environment</p>
 </footer>
+
+<!-- ======================== VIDEO LIGHTBOX ======================== -->
+<div class="video-lightbox-overlay" id="video-lightbox">
+  <div class="video-lightbox-inner">
+    <div class="video-lightbox-header">
+      <div class="video-lightbox-title" id="vlb-title"></div>
+      <button class="video-lightbox-close" id="vlb-close">✕</button>
+    </div>
+    <div class="video-lightbox-player">
+      <iframe id="vlb-iframe" src="" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen style="width:100%;height:100%;border:0;display:block;"></iframe>
+    </div>
+  </div>
+</div>
 
 <!-- ======================== LIGHTBOX ======================== -->
 <div class="lightbox-overlay" id="lightbox">
@@ -1473,20 +1672,70 @@ window.addEventListener('scroll', () => {
   nav.style.backdropFilter = window.scrollY > 60 ? 'blur(12px)' : 'none';
 });
 
-// ====== PLAY BUTTON ======
-const video   = document.querySelector('.showreel video');
-const playBtn = document.querySelector('.play-btn');
-if (video && playBtn) {
-  playBtn.addEventListener('click', () => {
-    if (video.paused) {
-      video.play();
-      playBtn.style.opacity = '0';
-    } else {
-      video.pause();
-      playBtn.style.opacity = '1';
-    }
+// ====== VIDEO LIGHTBOX (Other Works & Selection) ======
+const videoLightbox = document.getElementById('video-lightbox');
+const vlbIframe     = document.getElementById('vlb-iframe');
+const vlbTitle      = document.getElementById('vlb-title');
+const vlbClose      = document.getElementById('vlb-close');
+
+function openVideoLightbox(src, title) {
+  const url = src.includes('?') ? src + '&autoplay=1' : src + '?autoplay=1';
+  vlbIframe.src = url;
+  vlbTitle.textContent = title || '';
+  videoLightbox.classList.add('active');
+  document.body.style.overflow = 'hidden';
+  dot.style.zIndex  = '10020';
+  ring.style.zIndex = '10019';
+  glow.style.zIndex = '10018';
+}
+
+function closeVideoLightbox() {
+  videoLightbox.classList.remove('active');
+  vlbIframe.src = '';
+  document.body.style.overflow = '';
+  dot.style.zIndex  = '9999';
+  ring.style.zIndex = '9998';
+  glow.style.zIndex = '9990';
+}
+
+vlbClose.addEventListener('click', closeVideoLightbox);
+videoLightbox.addEventListener('click', e => { if (e.target === videoLightbox) closeVideoLightbox(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && videoLightbox.classList.contains('active')) closeVideoLightbox();
+});
+
+// ====== HEDGEHOG CARD — clic ouvre lightbox Vimeo ======
+const hedgehogCard = document.getElementById('hedgehog-card');
+if (hedgehogCard) {
+  hedgehogCard.addEventListener('click', () => {
+    const src   = hedgehogCard.getAttribute('data-video');
+    const title = hedgehogCard.getAttribute('data-title');
+    if (src) openVideoLightbox(src, title);
   });
 }
+
+// Attacher le clic lightbox sur les autres cards avec data-video (pas hedgehog)
+document.querySelectorAll('.card-has-video:not(#hedgehog-card)').forEach(card => {
+  card.addEventListener('click', () => {
+    const src   = card.getAttribute('data-video');
+    const title = card.getAttribute('data-title');
+    if (src) openVideoLightbox(src, title);
+  });
+});
+
+// Cursor hover pour le bouton fermer de la video lightbox
+vlbClose.addEventListener('mouseenter', () => {
+  ring.style.width  = '60px';
+  ring.style.height = '60px';
+  ring.style.borderColor = 'rgba(200,169,126,0.9)';
+});
+vlbClose.addEventListener('mouseleave', () => {
+  ring.style.width  = '36px';
+  ring.style.height = '36px';
+  ring.style.borderColor = 'rgba(200,169,126,0.6)';
+});
+
+// ====== PLAY BUTTON — désactivé (showreel via iframe Vimeo) ======
 
 // ====== PACKSHOT CAROUSEL ======
 const track = document.getElementById('packshot-track');
@@ -1516,12 +1765,12 @@ const packshotProjects = [
   {
     title: 'Packshot 01',
     media: [
-      { type: 'video', src: 'babolat.mov' },
+      { type: 'vimeo', src: 'https://player.vimeo.com/video/1184422651' },
       { type: 'image', src: 'tennis_v1.jpg' },
       { type: 'image', src: 'tennis_v2.jpg' },
       { type: 'image', src: 'tennis_v3.jpg' },
-      { type: 'video', src: 'breakd_raquette.mp4' },
-      { type: 'video', src: 'turn_babolat.mov' },
+      { type: 'vimeo', src: 'https://player.vimeo.com/video/1184430422' },
+      { type: 'vimeo', src: 'https://player.vimeo.com/video/1184428131' },
     ]
   },
   {
@@ -1590,6 +1839,9 @@ function openLightbox(projectIdx) {
 }
 
 function closeLightbox() {
+  // Stopper toutes les vidéos/iframes en cours dans le lightbox
+  lbMainImg.querySelectorAll('video').forEach(v => { v.pause(); v.src = ''; });
+  lbMainImg.querySelectorAll('iframe').forEach(f => { f.src = ''; });
   lightbox.classList.remove('active');
   document.body.style.overflow = '';
   dot.style.zIndex  = '9999';
@@ -1605,14 +1857,40 @@ function renderLightbox() {
   lbTitle.textContent   = project.title;
   lbCounter.textContent = `${lbImageIndex + 1} / ${media.length}`;
 
+  // Stopper la vidéo/iframe en cours avant de changer de slide
+  lbMainImg.querySelectorAll('video').forEach(v => { v.pause(); v.src = ''; });
+  lbMainImg.querySelectorAll('iframe').forEach(f => { f.src = ''; });
+
   // Render main media
   lbMainImg.innerHTML = '';
-  if (item.type === 'video') {
+  if (item.type === 'vimeo') {
+    // Extraire l'ID Vimeo depuis n'importe quelle forme d'URL
+    const vimeoId = item.src.match(/(?:vimeo\.com\/(?:video\/)?|player\.vimeo\.com\/video\/)(\d+)/)?.[1];
+    const embedUrl = vimeoId
+      ? `https://player.vimeo.com/video/${vimeoId}?autoplay=1&color=c8a97e`
+      : item.src;
+    const frame = document.createElement('iframe');
+    frame.src = embedUrl;
+    frame.setAttribute('frameborder', '0');
+    frame.setAttribute('allow', 'autoplay; fullscreen');
+    frame.setAttribute('allowfullscreen', '');
+    frame.style.width = '100%';
+    frame.style.height = '100%';
+    frame.style.border = '0';
+    frame.style.display = 'block';
+    lbMainImg.appendChild(frame);
+  } else if (item.type === 'video') {
     const vid = document.createElement('video');
     vid.src = item.src;
     vid.controls = true;
     vid.autoplay = true;
-    vid.style.cursor = 'none';
+    vid.playsInline = true;
+    vid.style.cursor = 'default';
+    vid.style.width = '100%';
+    vid.style.height = '100%';
+    vid.style.objectFit = 'contain';
+    vid.addEventListener('webkitfullscreenchange', () => { if (document.webkitFullscreenElement === vid) document.webkitExitFullscreen && document.webkitExitFullscreen(); });
+    vid.addEventListener('fullscreenchange', () => { if (document.fullscreenElement === vid) document.exitFullscreen && document.exitFullscreen(); });
     lbMainImg.appendChild(vid);
   } else {
     const img = document.createElement('img');
@@ -1627,7 +1905,13 @@ function renderLightbox() {
     const thumb = document.createElement('div');
     thumb.className = 'lightbox-thumb' + (i === lbImageIndex ? ' active' : '');
 
-    if (m.type === 'video') {
+    if (m.type === 'vimeo') {
+      // Thumbnail Vimeo : fond noir + icône play
+      thumb.style.background = '#111';
+      const icon = document.createElement('div');
+      icon.className = 'thumb-video-icon';
+      thumb.appendChild(icon);
+    } else if (m.type === 'video') {
       const vid = document.createElement('video');
       vid.src = m.src;
       vid.preload = 'metadata';
